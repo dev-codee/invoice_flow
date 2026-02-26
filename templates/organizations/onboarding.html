@@ -122,8 +122,28 @@
     <div class="brand">Invoice<span>Flow</span></div>
     <p class="subtitle">Set up your organization to start sending professional invoices in minutes</p>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="onboarding-form">
       {% csrf_token %}
+
+      {% if form.errors %}
+      <div style="background:#fff1f2; border:1px solid #fda4af; color:#be123e; padding:16px; border-radius:12px; font-size:13.5px; margin-bottom:24px; box-shadow:0 4px 12px rgba(225,29,72,0.08);">
+        <div style="font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Please correct the following:
+        </div>
+        <ul style="margin:0; padding-left:20px;">
+          {% for field in form %}
+            {% for error in field.errors %}
+              <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <div class="mb">
         <label class="form-label">Business / Organization Name *</label>
         {{ form.name }}
@@ -132,33 +152,84 @@
       <div class="mb">
         <label class="form-label">URL Slug <span style="font-weight:400;color:#9ca3af;">(auto-filled)</span></label>
         {{ form.slug }}
+        {% if form.slug.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.slug.errors.0 }}</div>{% endif %}
       </div>
       <div class="grid-2 mb">
         <div>
           <label class="form-label">Default Currency</label>
           {{ form.currency }}
+          {% if form.currency.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.currency.errors.0 }}</div>{% endif %}
         </div>
         <div>
           <label class="form-label">Payment Terms (days)</label>
           {{ form.payment_terms }}
+          {% if form.payment_terms.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.payment_terms.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+      <div class="grid-2 mb">
+        <div>
+          <label class="form-label">Default Tax Rate (%)</label>
+          {{ form.tax_rate }}
+          {% if form.tax_rate.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.tax_rate.errors.0 }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">Phone Number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.phone.errors.0 }}</div>{% endif %}
         </div>
       </div>
       <div class="mb">
         <label class="form-label">Business Address <span style="font-weight:400;color:#9ca3af;">(appears on invoices)</span></label>
         {{ form.address }}
+        {% if form.address.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.address.errors.0 }}</div>{% endif %}
       </div>
-      <button type="submit" class="btn-submit">
-        <i class="bi bi-rocket-takeoff"></i> Create Organization & Get Started
+      <div class="grid-2 mb">
+        <div>
+          <label class="form-label">Website</label>
+          {{ form.website }}
+          {% if form.website.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.website.errors.0 }}</div>{% endif %}
+        </div>
+        <div>
+          <label class="form-label">Logo</label>
+          {{ form.logo }}
+          {% if form.logo.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.logo.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+      <button type="submit" class="btn-submit" id="submit-btn">
+        <span class="btn-text"><i class="bi bi-rocket-takeoff"></i> Create Organization & Get Started</span>
+        <span class="btn-loading" style="display:none;"><i class="bi bi-arrow-repeat spin"></i> Creating...</span>
       </button>
     </form>
   </div>
 </div>
+
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+
 <script>
+  const form = document.getElementById('onboarding-form');
+  const btn = document.getElementById('submit-btn');
+  const btnText = btn.querySelector('.btn-text');
+  const btnLoading = btn.querySelector('.btn-loading');
+
+  form.addEventListener('submit', function() {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'not-allowed';
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'flex';
+  });
+
   const nameInput = document.querySelector('[name=name]');
   if (nameInput) {
     nameInput.addEventListener('input', function() {
       const slugInput = document.querySelector('[name=slug]');
-      if (slugInput) slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      if (slugInput) {
+        // Only update slug if it was auto-generated or empty
+        slugInput.value = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      }
     });
   }
 </script>

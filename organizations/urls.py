@@ -5,7 +5,9 @@ app_name = 'organizations'
 
 urlpatterns = [
     path('settings/', views.org_settings, name='settings'),
+    path('create/', views.org_create, name='create'),
     path('invite/', views.invite_member, name='invite'),
     path('invite/accept/<uuid:token>/', views.accept_invitation, name='accept_invite'),
     path('members/<int:pk>/remove/', views.remove_member, name='remove_member'),
+    path('switch/<uuid:org_id>/', views.switch_org, name='switch'),
 ]

@@ -9,31 +9,53 @@ from django.conf import settings
 
 
 def get_org(request):
-    m = request.user.memberships.select_related('organization').first()
-    return m.organization if m else None
+    active_id = request.session.get('active_org_id')
+    if active_id:
+        membership = request.user.memberships.filter(organization_id=active_id).select_related('organization').first()
+        if membership:
+            return membership.organization
+
+    membership = request.user.memberships.select_related('organization').first()
+    if membership:
+        request.session['active_org_id'] = str(membership.organization.id)
+        return membership.organization
+    return None
+
+
+@login_required
+def switch_org(request, org_id):
+    membership = get_object_or_404(OrganizationMembership, user=request.user, organization_id=org_id)
+    request.session['active_org_id'] = str(membership.organization.id)
+    messages.success(request, f'Switched to {membership.organization.name}')
+    return redirect('dashboard:dashboard')
+
+
+@login_required
+def org_create(request):
+    if request.method == 'POST':
+        form = OrganizationSetupForm(request.POST, request.FILES)
+        if form.is_valid():
+            org = form.save(commit=False)
+            org.owner = request.user
+            if not org.slug:
+                org.slug = slugify(org.name)
+            org.save()
+            OrganizationMembership.objects.create(
+                user=request.user, organization=org, role='owner'
+            )
+            request.session['active_org_id'] = str(org.id)
+            messages.success(request, f'Organization "{org.name}" created!')
+            return redirect('organizations:settings')
+    else:
+        form = OrganizationSetupForm()
+    return render(request, 'organizations/onboarding.html', {'form': form})
 
 
 @login_required
 def org_settings(request):
     org = get_org(request)
     if not org:
-        # First time — create org
-        if request.method == 'POST':
-            form = OrganizationSetupForm(request.POST, request.FILES)
-            if form.is_valid():
-                org = form.save(commit=False)
-                org.owner = request.user
-                if not org.slug:
-                    org.slug = slugify(org.name)
-                org.save()
-                OrganizationMembership.objects.create(
-                    user=request.user, organization=org, role='owner'
-                )
-                messages.success(request, f'Organization "{org.name}" created!')
-                return redirect('dashboard:dashboard')
-        else:
-            form = OrganizationSetupForm()
-        return render(request, 'organizations/onboarding.html', {'form': form})
+        return redirect('organizations:create')
 
     # Edit existing org
     membership = request.user.memberships.filter(organization=org).first()

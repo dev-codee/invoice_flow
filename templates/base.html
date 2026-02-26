@@ -135,9 +135,33 @@
     <button class="btn-icon" id="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')" style="display:none" title="Menu">
       <i class="bi bi-list"></i>
     </button>
-    <span class="topbar-title">
-      {% if org %}{{ org.name }}{% else %}InvoiceFlow{% endif %}
-    </span>
+    <div class="topbar-org-switcher">
+      <button class="topbar-org-btn" onclick="document.getElementById('org-dropdown').classList.toggle('show')">
+        <div class="org-avatar">{% if org %}{{ org.name|first|upper }}{% else %}I{% endif %}</div>
+        <span class="org-name">{% if org %}{{ org.name }}{% else %}InvoiceFlow{% endif %}</span>
+        <i class="bi bi-chevron-down"></i>
+      </button>
+      <div class="org-dropdown" id="org-dropdown">
+        <div class="dropdown-header">My Organizations</div>
+        {% for membership in request.user.memberships.all %}
+        <a href="{% url 'organizations:switch' membership.organization.id %}" class="dropdown-item {% if membership.organization == org %}active{% endif %}">
+          <div class="org-avatar-sm">{{ membership.organization.name|first|upper }}</div>
+          <div class="org-info">
+            <div class="org-item-name">{{ membership.organization.name }}</div>
+            <div class="org-item-role">{{ membership.get_role_display }}</div>
+          </div>
+          {% if membership.organization == org %}
+          <i class="bi bi-check2 ms-auto"></i>
+          {% endif %}
+        </a>
+        {% endfor %}
+        <div class="dropdown-divider"></div>
+        <a href="{% url 'organizations:create' %}" class="dropdown-item create-org-link">
+          <i class="bi bi-plus-circle"></i>
+          <span>Create New Organization</span>
+        </a>
+      </div>
+    </div>
   </div>
 
   <div class="topbar-actions">
@@ -174,6 +198,15 @@
       el.style.transition = 'all 0.3s ease';
       setTimeout(function() { el.remove(); }, 300);
     }, 4500);
+  });
+
+  // Organization switcher toggle
+  window.addEventListener('click', function(e) {
+    const switcher = document.querySelector('.topbar-org-switcher');
+    const dropdown = document.getElementById('org-dropdown');
+    if (switcher && !switcher.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
   });
 
   // Mobile sidebar toggle visibility

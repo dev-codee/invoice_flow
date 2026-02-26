@@ -284,6 +284,165 @@ body {
 .topbar-user-name { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
 
 /* ─────────────────────────────────────────────────
+   ORGANIZATION SWITCHER
+───────────────────────────────────────────────── */
+.topbar-org-switcher {
+  position: relative;
+  margin-left: -4px;
+}
+
+.topbar-org-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.topbar-org-btn:hover {
+  background: rgba(0,0,0,0.03);
+  border-color: var(--border);
+}
+
+.topbar-org-btn .org-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-400));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.topbar-org-btn .org-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.topbar-org-btn i {
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.org-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 260px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: none;
+  flex-direction: column;
+  padding: 8px;
+  z-index: 1000;
+  animation: slideUpIn 0.2s ease;
+}
+
+.org-dropdown.show {
+  display: flex;
+}
+
+@keyframes slideUpIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 8px 12px 12px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.15s;
+}
+
+.dropdown-item:hover {
+  background: var(--brand-50);
+}
+
+.dropdown-item.active {
+  background: var(--brand-50);
+}
+
+.org-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.dropdown-item.active .org-avatar-sm {
+  background: var(--brand-100);
+  color: var(--brand-600);
+}
+
+.org-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.org-item-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.org-item-role {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 8px;
+}
+
+.create-org-link {
+  color: var(--brand-600);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.create-org-link i {
+  font-size: 16px;
+}
+
+/* ─────────────────────────────────────────────────
    MAIN CONTENT
 ───────────────────────────────────────────────── */
 .main-content {

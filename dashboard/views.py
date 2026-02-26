@@ -5,9 +5,18 @@ from django.utils import timezone
 
 
 def get_active_org(request):
-    """Get the first organization the user belongs to."""
+    """Get the active organization from session or default to the first one."""
+    active_id = request.session.get('active_org_id')
+    if active_id:
+        membership = request.user.memberships.filter(organization_id=active_id).select_related('organization').first()
+        if membership:
+            return membership.organization
+
     membership = request.user.memberships.select_related('organization').first()
-    return membership.organization if membership else None
+    if membership:
+        request.session['active_org_id'] = str(membership.organization.id)
+        return membership.organization
+    return None
 
 
 def index(request):
