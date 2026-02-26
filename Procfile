@@ -1,3 +1,3 @@
-web: gunicorn invoiceflow.wsgi:application
-worker: celery -A invoiceflow worker --loglevel=info
-beat: celery -A invoiceflow beat --loglevel=info
+web: gunicorn django_proj.wsgi:application
+worker: celery -A django_proj worker --loglevel=info
+beat: celery -A django_proj beat --loglevel=info
