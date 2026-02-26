@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Organization Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Organization Settings</h1>
+    <p class="page-subtitle">Configure your business details, team, and preferences</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+  {# Main Settings #}
+  <div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header"><h3 class="card-header-title">Business Settings</h3></div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div style="grid-column:1/3;">
+              <label class="form-label">Organization Name *</label>
+              {{ form.name }}
+            </div>
+            <div>
+              <label class="form-label">URL Slug</label>
+              {{ form.slug }}
+            </div>
+            <div>
+              <label class="form-label">Website</label>
+              {{ form.website }}
+            </div>
+            <div>
+              <label class="form-label">Default Currency</label>
+              {{ form.currency }}
+            </div>
+            <div>
+              <label class="form-label">Default Tax Rate (%)</label>
+              {{ form.tax_rate }}
+            </div>
+            <div>
+              <label class="form-label">Payment Terms (days)</label>
+              {{ form.payment_terms }}
+            </div>
+            <div>
+              <label class="form-label">Phone</label>
+              {{ form.phone }}
+            </div>
+            <div style="grid-column:1/3;">
+              <label class="form-label">Business Address</label>
+              {{ form.address }}
+            </div>
+            <div style="grid-column:1/3;">
+              <label class="form-label">Logo</label>
+              {% if org.logo %}
+              <div style="margin-bottom:8px;"><img src="{{ org.logo.url }}" height="48" style="border-radius:8px;border:1px solid var(--border);"></div>
+              {% endif %}
+              {{ form.logo }}
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Save Settings</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {# Team Members #}
+    <div class="data-table-wrap" style="margin-bottom:16px;">
+      <div class="card-header">
+        <h3 class="card-header-title">Team Members</h3>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Member</th><th>Role</th><th class="col-actions">Actions</th></tr></thead>
+        <tbody>
+          {% for m in members %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brand-600),var(--brand-400));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">{{ m.user.email|first|upper }}</div>
+                <div>
+                  <div style="font-size:13.5px;font-weight:600;">{{ m.user.get_full_name|default:m.user.username }}</div>
+                  <div style="font-size:11.5px;color:var(--text-muted);">{{ m.user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">{{ m.get_role_display }}</span></td>
+            <td class="col-actions">
+              {% if m.role != 'owner' and membership.role in 'owner,admin' %}
+              <a href="{% url 'organizations:remove_member' m.pk %}"
+                 class="btn-row btn-row-danger"
+                 onclick="return confirm('Remove this member from the organization?')"
+                 title="Remove">
+                <i class="bi bi-person-dash"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Invite Form #}
+    <div class="card">
+      <div class="card-header"><h3 class="card-header-title">Invite Team Member</h3></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'organizations:invite' %}">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:end;">
+            <div>
+              <label class="form-label">Email</label>
+              {{ invite_form.email }}
+            </div>
+            <div>
+              <label class="form-label">Role</label>
+              {{ invite_form.role }}
+            </div>
+            <div>
+              <label class="form-label" style="visibility:hidden">.</label>
+              <button type="submit" class="btn btn-secondary"><i class="bi bi-send"></i> Invite</button>
+            </div>
+          </div>
+        </form>
+        {% if pending_invitations %}
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-subtle);">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Pending Invitations</div>
+          {% for inv in pending_invitations %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+            <span style="font-size:13px;">{{ inv.email }}</span>
+            <span class="status-badge status-viewed">{{ inv.get_role_display }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Sidebar — Plan / Info #}
+  <div>
+    <div class="card">
+      <div class="card-body" style="text-align:center;padding:28px 20px;">
+        {% if org.logo %}
+        <img src="{{ org.logo.url }}" height="52" style="border-radius:10px;margin-bottom:14px;border:1px solid var(--border);">
+        {% else %}
+        <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--brand-700),var(--brand-400));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#fff;">{{ org.name|first|upper }}</div>
+        {% endif %}
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;">{{ org.name }}</div>
+        <span class="tag" style="margin-bottom:16px;display:inline-block;">{{ org.get_plan_display }} Plan</span>
+        <hr class="divider">
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;text-align:left;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--text-muted);">Members</span>
+            <span style="font-weight:600;">{{ members|length }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--text-muted);">Currency</span>
+            <span style="font-weight:600;">{{ org.currency }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--text-muted);">Tax Rate</span>
+            <span style="font-weight:600;">{{ org.tax_rate }}%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--text-muted);">Payment Terms</span>
+            <span style="font-weight:600;">Net {{ org.payment_terms }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

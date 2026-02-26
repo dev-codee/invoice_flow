@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Delete Recurring Schedule{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <a href="{% url 'recurring:list' %}" class="btn-icon" style="width:32px;height:32px;flex-shrink:0;text-decoration:none;margin-bottom:8px;"><i class="bi bi-arrow-left"></i></a>
+    <h1 class="page-title">Delete Schedule</h1>
+  </div>
+</div>
+<div class="card" style="max-width:480px;">
+  <div class="card-body" style="text-align:center;padding:32px;">
+    <div style="width:52px;height:52px;border-radius:50%;background:#fff1f2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;"><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:22px;"></i></div>
+    <h2 style="font-size:17px;font-weight:700;margin:0 0 8px;">Are you sure?</h2>
+    <p style="color:var(--text-muted);font-size:13.5px;margin:0 0 20px;">
+      This will permanently delete the recurring schedule for <strong>{{ schedule.template_invoice.invoice_number }}</strong>.
+      No future invoices will be generated.
+    </p>
+    <form method="post" style="display:flex;gap:10px;justify-content:center;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Delete Schedule</button>
+      <a href="{% url 'recurring:list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

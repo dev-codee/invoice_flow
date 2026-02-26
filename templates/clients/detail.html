@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}{{ client.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="{% url 'clients:list' %}" class="btn-icon" style="width:32px;height:32px;flex-shrink:0;text-decoration:none;"><i class="bi bi-arrow-left"></i></a>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--brand-600),var(--brand-400));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0;">{{ client.name|first|upper }}</div>
+        <div>
+          <h1 class="page-title" style="margin-bottom:2px;">{{ client.name }}</h1>
+          <span class="{% if client.is_active %}status-badge status-paid{% else %}status-badge status-cancelled{% endif %}">{% if client.is_active %}Active{% else %}Inactive{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'clients:update' client.pk %}" class="btn btn-secondary"><i class="bi bi-pencil"></i> Edit</a>
+    <a href="{% url 'invoices:create' %}?client={{ client.pk }}" class="btn btn-primary"><i class="bi bi-plus"></i> New Invoice</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start;">
+  {# Contact Card #}
+  <div class="card">
+    <div class="card-header"><h3 class="card-header-title">Contact Details</h3></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        {% if client.email %}
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:7px;background:var(--brand-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-envelope" style="color:var(--brand-500);font-size:12px;"></i></div>
+          <div><div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Email</div><a href="mailto:{{ client.email }}" style="font-size:13px;color:var(--brand-600);text-decoration:none;">{{ client.email }}</a></div>
+        </div>
+        {% endif %}
+        {% if client.phone %}
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:7px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-telephone" style="color:#10b981;font-size:12px;"></i></div>
+          <div><div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Phone</div><div style="font-size:13px;">{{ client.phone }}</div></div>
+        </div>
+        {% endif %}
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:7px;background:#fffbeb;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-currency-dollar" style="color:#f59e0b;font-size:12px;"></i></div>
+          <div><div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Currency</div><div style="font-size:13px;font-weight:600;">{{ client.currency }}</div></div>
+        </div>
+        {% if client.tax_id %}
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:7px;background:#f9fafb;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-shield-check" style="color:#6b7280;font-size:12px;"></i></div>
+          <div><div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Tax ID</div><div style="font-size:13px;">{{ client.tax_id }}</div></div>
+        </div>
+        {% endif %}
+        {% if client.billing_address %}
+        <div style="display:flex;gap:10px;align-items:flex-start;padding-top:8px;border-top:1px solid var(--border-subtle);">
+          <div style="width:28px;height:28px;border-radius:7px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;"><i class="bi bi-geo-alt" style="color:#6b7280;font-size:12px;"></i></div>
+          <div><div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Address</div><div style="font-size:12.5px;line-height:1.55;color:var(--text-secondary);">{{ client.billing_address }}</div></div>
+        </div>
+        {% endif %}
+        {% if client.notes %}
+        <div style="padding-top:8px;border-top:1px solid var(--border-subtle);">
+          <div style="font-size:10.5px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Notes</div>
+          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.55;">{{ client.notes }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Invoice History #}
+  <div class="data-table-wrap">
+    <div class="card-header">
+      <h3 class="card-header-title">Invoice History</h3>
+      <a href="{% url 'invoices:create' %}?client={{ client.pk }}" class="btn btn-ghost btn-sm"><i class="bi bi-plus"></i> New</a>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th>Invoice #</th><th>Total</th><th>Paid</th><th>Status</th><th>Due Date</th>
+      </tr></thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><a href="{% url 'invoices:detail' inv.pk %}" class="col-primary" style="font-weight:700;">{{ inv.invoice_number }}</a></td>
+          <td class="col-amount" style="font-weight:700;">${{ inv.total|floatformat:2 }}</td>
+          <td class="col-muted">${{ inv.amount_paid|floatformat:2 }}</td>
+          <td><span class="status-badge status-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+          <td class="{% if inv.is_overdue %}text-danger{% else %}col-muted{% endif %}">{{ inv.due_date|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">
+          <div class="empty-state" style="padding:36px;">
+            <i class="bi bi-receipt empty-state-icon"></i>
+            <h3>No invoices yet</h3>
+            <p>Create the first invoice for this client</p>
+            <a href="{% url 'invoices:create' %}?client={{ client.pk }}" class="btn btn-primary btn-sm">Create Invoice</a>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

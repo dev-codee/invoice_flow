@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Clients{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Clients</h1>
+    <p class="page-subtitle">Manage your client roster and contact information</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'clients:import_csv' %}" class="btn btn-secondary"><i class="bi bi-upload"></i> Import CSV</a>
+    <a href="{% url 'clients:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New Client</a>
+  </div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+  <form method="get" style="flex:1;max-width:340px;">
+    <div class="search-wrap" style="margin-bottom:0">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" name="q" value="{{ q }}" class="search-input" placeholder="Search by name or email…">
+    </div>
+  </form>
+  <div style="font-size:12.5px;color:var(--text-muted);">{{ clients|length }} client{{ clients|length|pluralize }}</div>
+</div>
+
+<div class="data-table-wrap" style="margin-top:12px;">
+  <table class="data-table">
+    <thead><tr>
+      <th>Client</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Currency</th>
+      <th>Status</th>
+      <th class="col-actions">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for client in clients %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brand-600),var(--brand-400));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">{{ client.name|first|upper }}</div>
+            <a href="{% url 'clients:detail' client.pk %}" class="col-primary" style="font-weight:600;">{{ client.name }}</a>
+          </div>
+        </td>
+        <td class="col-muted">{{ client.email }}</td>
+        <td class="col-muted">{{ client.phone|default:"—" }}</td>
+        <td><span class="tag tag-grey">{{ client.currency }}</span></td>
+        <td>
+          {% if client.is_active %}
+          <span class="status-badge status-paid">Active</span>
+          {% else %}
+          <span class="status-badge status-cancelled">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="col-actions">
+          <div class="row-actions">
+            <a href="{% url 'clients:detail' client.pk %}" class="btn-row" title="View"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'clients:update' client.pk %}" class="btn-row" title="Edit"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'invoices:create' %}?client={{ client.pk }}" class="btn-row" title="New Invoice"><i class="bi bi-receipt"></i></a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">
+        <div class="empty-state">
+          <i class="bi bi-people empty-state-icon"></i>
+          <h3>No clients yet</h3>
+          <p>Add your first client or import from a CSV file</p>
+          <a href="{% url 'clients:create' %}" class="btn btn-primary">Add Client</a>
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

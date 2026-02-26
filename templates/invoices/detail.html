@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}{{ invoice.invoice_number }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="{% url 'invoices:list' %}" class="btn-icon" style="width:32px;height:32px;flex-shrink:0;text-decoration:none;">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="page-title" style="margin-bottom:0;">{{ invoice.invoice_number }}</h1>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <span class="status-badge status-{{ invoice.status }}">{{ invoice.get_status_display }}</span>
+          <span style="color:var(--text-muted);font-size:12px;">{{ invoice.client.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-header-actions">
+    {% if invoice.status == 'draft' %}
+    <a href="{% url 'invoices:update' invoice.pk %}" class="btn btn-secondary"><i class="bi bi-pencil"></i> Edit</a>
+    <a href="{% url 'invoices:send' invoice.pk %}"
+       class="btn btn-primary"
+       onclick="return confirm('Send this invoice to {{ invoice.client.email }}?')">
+      <i class="bi bi-send"></i> Send Invoice
+    </a>
+    {% elif invoice.status in 'sent,viewed,partially_paid,overdue' %}
+    <a href="{% url 'invoices:send' invoice.pk %}" class="btn btn-secondary"><i class="bi bi-send"></i> Re-send</a>
+    <a href="{% url 'payments:record' invoice.pk %}" class="btn btn-success"><i class="bi bi-cash-coin"></i> Record Payment</a>
+    {% endif %}
+    <a href="{% url 'invoices:pdf' invoice.pk %}" class="btn btn-secondary" title="Download PDF"><i class="bi bi-file-pdf"></i> PDF</a>
+    <a href="{% url 'invoices:duplicate' invoice.pk %}" class="btn btn-secondary"><i class="bi bi-copy"></i></a>
+    <a href="{% url 'invoices:portal' invoice.pk %}" target="_blank" class="btn btn-secondary" title="Client view"><i class="bi bi-box-arrow-up-right"></i></a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 340px;gap:20px;align-items:start;">
+  {# ── Invoice Paper ── #}
+  <div class="invoice-paper">
+    <div class="invoice-paper-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;">{{ org.name }}</div>
+          {% if org.address %}<div style="font-size:13px;opacity:0.65;line-height:1.6;">{{ org.address|linebreaksbr }}</div>{% endif %}
+          {% if org.phone %}<div style="font-size:13px;opacity:0.65;">{{ org.phone }}</div>{% endif %}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;">Invoice</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.5px;">{{ invoice.invoice_number }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="invoice-paper-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+        <div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Bill To</div>
+          <div style="font-weight:700;font-size:15px;margin-bottom:2px;">{{ invoice.client.name }}</div>
+          <div style="color:var(--text-muted);font-size:13px;">{{ invoice.client.email }}</div>
+          {% if invoice.client.billing_address %}
+          <div style="color:var(--text-muted);font-size:12.5px;margin-top:4px;line-height:1.5;">{{ invoice.client.billing_address }}</div>
+          {% endif %}
+        </div>
+        <div style="text-align:right;">
+          <div style="display:grid;grid-template-columns:auto auto;gap:4px 16px;font-size:13px;justify-content:end;">
+            <span style="color:var(--text-muted);">Issue Date</span>
+            <span style="font-weight:600;">{{ invoice.issue_date|date:"M d, Y" }}</span>
+            <span style="color:var(--text-muted);">Due Date</span>
+            <span style="font-weight:600;{% if invoice.is_overdue %}color:#ef4444;{% endif %}">{{ invoice.due_date|date:"M d, Y" }}</span>
+          </div>
+        </div>
+      </div>
+
+      {# Line Items Table #}
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <thead>
+          <tr style="background:#f8f9fc;border-bottom:2px solid var(--border);">
+            <th style="padding:10px 12px;text-align:left;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);">Description</th>
+            <th style="padding:10px 12px;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);">Qty</th>
+            <th style="padding:10px 12px;text-align:right;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);">Unit Price</th>
+            <th style="padding:10px 12px;text-align:right;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);">Tax</th>
+            <th style="padding:10px 12px;text-align:right;font-size:10.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in invoice.line_items.all %}
+          <tr style="border-bottom:1px solid var(--border-subtle);">
+            <td style="padding:13px 12px;font-size:13.5px;">{{ item.description }}</td>
+            <td style="padding:13px 12px;text-align:center;color:var(--text-muted);">{{ item.quantity }}</td>
+            <td style="padding:13px 12px;text-align:right;color:var(--text-muted);">${{ item.unit_price|floatformat:2 }}</td>
+            <td style="padding:13px 12px;text-align:right;color:var(--text-muted);">{{ item.tax_rate }}%</td>
+            <td style="padding:13px 12px;text-align:right;font-weight:700;font-size:14px;">${{ item.amount|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {# Totals #}
+      <div style="display:flex;justify-content:flex-end;">
+        <div style="min-width:260px;">
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;">
+            <span style="color:var(--text-muted);">Subtotal</span>
+            <span>${{ invoice.subtotal|floatformat:2 }}</span>
+          </div>
+          {% if invoice.discount_amount %}
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;">
+            <span style="color:var(--text-muted);">Discount</span>
+            <span style="color:#ef4444;">−${{ invoice.discount_amount|floatformat:2 }}</span>
+          </div>
+          {% endif %}
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;">
+            <span style="color:var(--text-muted);">Tax</span>
+            <span>${{ invoice.tax_amount|floatformat:2 }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:14px 0 10px;border-top:2px solid var(--border);margin-top:6px;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">Total Due</span>
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--brand-700);">${{ invoice.total|floatformat:2 }}</span>
+          </div>
+          {% if invoice.amount_paid %}
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;">
+            <span style="color:#10b981;font-weight:600;">Amount Paid</span>
+            <span style="color:#10b981;font-weight:700;">${{ invoice.amount_paid|floatformat:2 }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;font-weight:700;">
+            <span style="color:#ef4444;">Balance Due</span>
+            <span style="color:#ef4444;">${{ invoice.balance_due|floatformat:2 }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if invoice.notes or invoice.terms %}
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border-subtle);">
+        {% if invoice.notes %}<p style="font-size:13px;color:var(--text-muted);margin:0 0 8px;"><strong style="color:var(--text-secondary);">Notes:</strong> {{ invoice.notes }}</p>{% endif %}
+        {% if invoice.terms %}<p style="font-size:13px;color:var(--text-muted);margin:0;"><strong style="color:var(--text-secondary);">Terms:</strong> {{ invoice.terms }}</p>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ── Sidebar panels ── #}
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    {# Payment History #}
+    <div class="card">
+      <div class="card-header"><h3 class="card-header-title">Payments</h3></div>
+      <div class="card-body" style="padding:12px 20px;">
+        {% for payment in invoice.payments.all %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <div style="font-size:13px;font-weight:600;">{{ payment.get_method_display }}</div>
+            <div style="font-size:11.5px;color:var(--text-muted);">{{ payment.payment_date|date:"M d, Y" }}</div>
+          </div>
+          <div style="font-weight:700;color:#10b981;font-size:14px;">${{ payment.amount|floatformat:2 }}</div>
+        </div>
+        {% empty %}
+        <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;margin:0;">No payments recorded</p>
+        {% endfor %}
+        {% if invoice.status != 'paid' and invoice.status != 'cancelled' %}
+        <a href="{% url 'payments:record' invoice.pk %}" class="btn btn-success btn-sm" style="width:100%;justify-content:center;margin-top:10px;">
+          <i class="bi bi-plus"></i> Record Payment
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Activity #}
+    <div class="card">
+      <div class="card-header"><h3 class="card-header-title">Activity</h3></div>
+      <div class="card-body">
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;">
+          {% if invoice.sent_at %}
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-send" style="color:#2563eb;font-size:10px;"></i></div>
+            <div><div style="font-weight:600;color:var(--text-secondary);">Sent</div><div style="color:var(--text-muted);">{{ invoice.sent_at|date:"M d, Y H:i" }}</div></div>
+          </div>
+          {% endif %}
+          {% if invoice.viewed_at %}
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-eye" style="color:#7c3aed;font-size:10px;"></i></div>
+            <div><div style="font-weight:600;color:var(--text-secondary);">Viewed by client</div><div style="color:var(--text-muted);">{{ invoice.viewed_at|date:"M d, Y H:i" }}</div></div>
+          </div>
+          {% endif %}
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:20px;height:20px;border-radius:50%;background:#f0fdf4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-plus-circle" style="color:#10b981;font-size:10px;"></i></div>
+            <div><div style="font-weight:600;color:var(--text-secondary);">Created</div><div style="color:var(--text-muted);">{{ invoice.created_at|date:"M d, Y" }}</div></div>
+          </div>
+        </div>
+        <hr class="divider">
+        <a href="{% url 'invoices:delete' invoice.pk %}" class="btn btn-danger btn-sm" style="width:100%;justify-content:center;">
+          <i class="bi bi-x-circle"></i> Cancel Invoice
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

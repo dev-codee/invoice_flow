@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Invoices</h1>
+    <p class="page-subtitle">Track, send, and manage all your invoices</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'invoices:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New Invoice</a>
+  </div>
+</div>
+
+{# Filter tabs #}
+<div class="filter-tabs">
+  <a href="{% url 'invoices:list' %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
+  {% for val, label in statuses %}
+  <a href="?status={{ val }}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{# Search #}
+<form method="get" style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <div class="search-wrap" style="margin-bottom:0">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" name="q" value="{{ q }}" class="search-input" placeholder="Search by invoice # or client…">
+  </div>
+  {% if q %}<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i> Clear</a>{% endif %}
+</form>
+
+<div class="data-table-wrap">
+  <table class="data-table">
+    <thead><tr>
+      <th>Invoice #</th>
+      <th>Client</th>
+      <th>Issue Date</th>
+      <th>Due Date</th>
+      <th>Total</th>
+      <th>Paid</th>
+      <th>Status</th>
+      <th class="col-actions">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for inv in invoices %}
+      <tr>
+        <td>
+          <a href="{% url 'invoices:detail' inv.pk %}" class="col-primary" style="font-weight:700;font-size:13px;">{{ inv.invoice_number }}</a>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">{{ inv.client.name|first|upper }}</div>
+            {{ inv.client.name }}
+          </div>
+        </td>
+        <td class="col-muted">{{ inv.issue_date|date:"M d, Y" }}</td>
+        <td class="{% if inv.is_overdue %}text-danger{% else %}col-muted{% endif %}" style="font-weight:{% if inv.is_overdue %}600{% else %}400{% endif %};">
+          {{ inv.due_date|date:"M d, Y" }}
+        </td>
+        <td class="col-amount" style="font-weight:700;">${{ inv.total|floatformat:2 }}</td>
+        <td class="col-muted">${{ inv.amount_paid|floatformat:2 }}</td>
+        <td><span class="status-badge status-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+        <td class="col-actions">
+          <div class="row-actions">
+            <a href="{% url 'invoices:detail' inv.pk %}" class="btn-row" title="View"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'invoices:pdf' inv.pk %}" class="btn-row" title="PDF"><i class="bi bi-file-pdf"></i></a>
+            <a href="{% url 'invoices:update' inv.pk %}" class="btn-row" title="Edit"><i class="bi bi-pencil"></i></a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8">
+        <div class="empty-state">
+          <i class="bi bi-receipt empty-state-icon"></i>
+          <h3>No invoices found</h3>
+          <p>{% if status_filter or q %}Try adjusting your filters{% else %}Create your first invoice to start billing{% endif %}</p>
+          {% if not status_filter and not q %}<a href="{% url 'invoices:create' %}" class="btn btn-primary">Create Invoice</a>{% endif %}
+        </div>
+      </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

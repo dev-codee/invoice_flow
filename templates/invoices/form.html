@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="{% url 'invoices:list' %}" class="btn-icon" style="width:32px;height:32px;flex-shrink:0;text-decoration:none;"><i class="bi bi-arrow-left"></i></a>
+      <div>
+        <h1 class="page-title" style="margin-bottom:0;">{{ title }}</h1>
+        {% if invoice %}<p class="page-subtitle">Updating {{ invoice.invoice_number }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" id="invoice-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+    <div>
+      {# Invoice Header Card #}
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header"><h3 class="card-header-title">Invoice Details</h3></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+            <div style="grid-column:1/3;">
+              <label class="form-label">Client *</label>
+              {{ form.client }}
+              {% if form.client.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.client.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+              <label class="form-label">Issue Date</label>
+              {{ form.issue_date }}
+            </div>
+            <div>
+              <label class="form-label">Due Date *</label>
+              {{ form.due_date }}
+              {% if form.due_date.errors %}<div style="color:#ef4444;font-size:11.5px;margin-top:4px;">{{ form.due_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+              <label class="form-label">Discount ($)</label>
+              {{ form.discount_amount }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Line Items Card #}
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <h3 class="card-header-title">Line Items</h3>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table style="width:100%;border-collapse:collapse;" id="line-items-table">
+            <thead>
+              <tr style="background:#fafbfc;border-bottom:1px solid var(--border-subtle);">
+                <th style="padding:10px 16px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);text-align:left;min-width:200px;">Description</th>
+                <th style="padding:10px 8px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);width:80px;">Qty</th>
+                <th style="padding:10px 8px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);width:110px;">Unit Price</th>
+                <th style="padding:10px 8px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);width:80px;">Tax %</th>
+                <th style="padding:10px 8px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);width:80px;">Disc %</th>
+                <th style="padding:10px 16px;font-size:10.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--text-muted);text-align:right;width:90px;">Amount</th>
+                <th style="width:42px;"></th>
+              </tr>
+            </thead>
+            <tbody id="line-items-body">
+              {% for item_form in formset %}
+              <tr class="line-item-row" style="border-bottom:1px solid var(--border-subtle);">
+                {% if item_form.instance.pk %}{{ item_form.id }}{% endif %}
+                <td style="padding:8px 16px 8px;">{{ item_form.description }}</td>
+                <td style="padding:8px;">{{ item_form.quantity }}</td>
+                <td style="padding:8px;">{{ item_form.unit_price }}</td>
+                <td style="padding:8px;">{{ item_form.tax_rate }}</td>
+                <td style="padding:8px;">{{ item_form.discount }}</td>
+                <td style="padding:8px 16px;text-align:right;font-weight:700;font-size:13px;color:var(--brand-700);">
+                  {% if item_form.instance.pk %}<span class="line-amount">${{ item_form.instance.amount|floatformat:2 }}</span>{% else %}<span class="line-amount">—</span>{% endif %}
+                </td>
+                <td style="padding:8px;">
+                  {% if item_form.instance.pk %}{{ item_form.DELETE }}{% endif %}
+                  <button type="button" class="btn-row btn-row-danger remove-line" title="Remove">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div style="padding:12px 16px;">
+            <button type="button" id="add-line"
+              style="width:100%;padding:9px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--brand-600);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;"
+              onmouseover="this.style.background='var(--brand-50)';this.style.borderColor='var(--brand-400)'"
+              onmouseout="this.style.background='transparent';this.style.borderColor='var(--border)'">
+              <i class="bi bi-plus" style="margin-right:4px;"></i> Add Line Item
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {# Notes & Terms #}
+      <div class="card">
+        <div class="card-header"><h3 class="card-header-title">Notes & Terms</h3></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div>
+              <label class="form-label">Notes <span style="font-weight:400;color:var(--text-muted);">(visible to client)</span></label>
+              {{ form.notes }}
+            </div>
+            <div>
+              <label class="form-label">Terms & Conditions</label>
+              {{ form.terms }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Sidebar #}
+    <div style="position:sticky;top:76px;">
+      <div class="card">
+        <div class="card-header"><h3 class="card-header-title">Summary</h3></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:var(--text-muted);">Subtotal</span>
+              <span id="preview-subtotal">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:var(--text-muted);">Tax</span>
+              <span id="preview-tax">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;">
+              <span style="color:var(--text-muted);">Discount</span>
+              <span id="preview-discount">—</span>
+            </div>
+          </div>
+          <div style="border-top:2px solid var(--border);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;">Total</span>
+            <span id="preview-total" style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--brand-700);">$0.00</span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:16px;">
+            <i class="bi bi-check2"></i> Save Invoice
+          </button>
+          <a href="{% url 'invoices:list' %}" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:8px;">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let lineCount = {{ formset.total_form_count }};
+
+function calcPreview() {
+  let subtotal = 0, tax = 0;
+  document.querySelectorAll('.line-item-row').forEach(function(row) {
+    if (row.style.display === 'none') return;
+    const qty = parseFloat(row.querySelector('[name*="-quantity"]')?.value) || 0;
+    const price = parseFloat(row.querySelector('[name*="-unit_price"]')?.value) || 0;
+    const taxRate = parseFloat(row.querySelector('[name*="-tax_rate"]')?.value) || 0;
+    const disc = parseFloat(row.querySelector('[name*="-discount"]')?.value) || 0;
+    const lineAmt = qty * price * (1 - disc/100);
+    subtotal += lineAmt;
+    tax += lineAmt * taxRate / 100;
+    const amtEl = row.querySelector('.line-amount');
+    if (amtEl) amtEl.textContent = '$' + lineAmt.toFixed(2);
+  });
+  const discount = parseFloat(document.querySelector('[name*="discount_amount"]')?.value) || 0;
+  const total = subtotal + tax - discount;
+  document.getElementById('preview-subtotal').textContent = '$' + subtotal.toFixed(2);
+  document.getElementById('preview-tax').textContent = '$' + tax.toFixed(2);
+  document.getElementById('preview-discount').textContent = discount > 0 ? '-$' + discount.toFixed(2) : '—';
+  document.getElementById('preview-total').textContent = '$' + total.toFixed(2);
+}
+
+document.getElementById('add-line').addEventListener('click', function() {
+  const tbody = document.getElementById('line-items-body');
+  const idx = lineCount;
+  const row = document.createElement('tr');
+  row.className = 'line-item-row';
+  row.style.borderBottom = '1px solid var(--border-subtle)';
+  row.innerHTML = `
+    <td style="padding:8px 16px;"><input name="line_items-${idx}-description" class="form-control" placeholder="Service or product description"></td>
+    <td style="padding:8px;"><input name="line_items-${idx}-quantity" class="form-control" type="number" step="0.01" value="1" min="0"></td>
+    <td style="padding:8px;"><input name="line_items-${idx}-unit_price" class="form-control" type="number" step="0.01" min="0" placeholder="0.00"></td>
+    <td style="padding:8px;"><input name="line_items-${idx}-tax_rate" class="form-control" type="number" step="0.01" min="0" value="0"></td>
+    <td style="padding:8px;"><input name="line_items-${idx}-discount" class="form-control" type="number" step="0.01" min="0" value="0"></td>
+    <td style="padding:8px 16px;text-align:right;font-weight:700;color:var(--brand-700);"><span class="line-amount">—</span></td>
+    <td style="padding:8px;"><button type="button" class="btn-row btn-row-danger remove-line" title="Remove"><i class="bi bi-trash"></i></button></td>
+  `;
+  tbody.appendChild(row);
+  lineCount++;
+  document.getElementById('id_line_items-TOTAL_FORMS').value = lineCount;
+  row.querySelectorAll('input').forEach(i => i.addEventListener('input', calcPreview));
+});
+
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.remove-line')) {
+    const row = e.target.closest('tr');
+    const deleteInput = row.querySelector('input[type=checkbox][name*=DELETE]');
+    if (deleteInput) { deleteInput.checked = true; row.style.display = 'none'; }
+    else { row.remove(); }
+    calcPreview();
+  }
+});
+
+document.getElementById('invoice-form').addEventListener('input', calcPreview);
+calcPreview();
+</script>
+{% endblock %}

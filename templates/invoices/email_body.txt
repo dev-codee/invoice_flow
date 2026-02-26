@@ -1,0 +1,20 @@
+Invoice {{ invoice.invoice_number }} from {{ org.name }}
+
+Dear {{ invoice.client.name }},
+
+Please find your invoice attached.
+
+Invoice Number: {{ invoice.invoice_number }}
+Issue Date: {{ invoice.issue_date }}
+Due Date: {{ invoice.due_date }}
+Total Due: ${{ invoice.total }}
+
+View and pay your invoice online:
+{{ portal_url }}
+
+{% if invoice.notes %}Notes: {{ invoice.notes }}{% endif %}
+
+Thank you for your business!
+
+{{ org.name }}
+{% if org.phone %}{{ org.phone }}{% endif %}

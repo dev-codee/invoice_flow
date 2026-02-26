@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Welcome back — here's what's happening with your invoices</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'invoices:create' %}" class="btn btn-primary">
+      <i class="bi bi-plus"></i> New Invoice
+    </a>
+  </div>
+</div>
+
+{# ── KPI Cards ── #}
+<div class="kpi-grid">
+  <div class="kpi-card kpi-blue">
+    <div class="kpi-icon"><i class="bi bi-receipt"></i></div>
+    <div class="kpi-label">Total Invoiced</div>
+    <div class="kpi-value">${{ total_invoiced|floatformat:0 }}</div>
+    <div class="kpi-trend neutral"><i class="bi bi-dash"></i> All time</div>
+  </div>
+  <div class="kpi-card kpi-green">
+    <div class="kpi-icon"><i class="bi bi-check2-circle"></i></div>
+    <div class="kpi-label">Collected</div>
+    <div class="kpi-value">${{ total_collected|floatformat:0 }}</div>
+    <div class="kpi-trend up"><i class="bi bi-arrow-up-short"></i> Payments received</div>
+  </div>
+  <div class="kpi-card kpi-yellow">
+    <div class="kpi-icon"><i class="bi bi-clock"></i></div>
+    <div class="kpi-label">Outstanding</div>
+    <div class="kpi-value">${{ total_outstanding|floatformat:0 }}</div>
+    <div class="kpi-trend neutral"><i class="bi bi-dot"></i> Awaiting payment</div>
+  </div>
+  <div class="kpi-card kpi-red">
+    <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+    <div class="kpi-label">Overdue</div>
+    <div class="kpi-value">${{ total_overdue|floatformat:0 }}</div>
+    <div class="kpi-trend {% if total_overdue > 0 %}up{% else %}neutral{% endif %}">
+      {% if total_overdue > 0 %}<i class="bi bi-arrow-up-short"></i> Needs attention
+      {% else %}<i class="bi bi-check2"></i> All clear{% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+  {# ── Recent Invoices ── #}
+  <div>
+    <div class="data-table-wrap">
+      <div class="card-header">
+        <h2 class="card-header-title">Recent Invoices</h2>
+        <a href="{% url 'invoices:list' %}" class="btn btn-ghost btn-sm">View all <i class="bi bi-arrow-right ms-1"></i></a>
+      </div>
+      <table class="data-table">
+        <thead><tr>
+          <th>Invoice #</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Due Date</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody>
+          {% for inv in recent_invoices %}
+          <tr>
+            <td><a href="{% url 'invoices:detail' inv.pk %}" class="col-primary">{{ inv.invoice_number }}</a></td>
+            <td>{{ inv.client.name }}</td>
+            <td class="col-amount fw-semibold">${{ inv.total|floatformat:2 }}</td>
+            <td class="{% if inv.is_overdue %}text-danger{% else %}col-muted{% endif %}">
+              {{ inv.due_date|date:"M d, Y" }}
+            </td>
+            <td><span class="status-badge status-{{ inv.status }}">{{ inv.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5">
+            <div class="empty-state" style="padding:40px">
+              <i class="bi bi-receipt empty-state-icon"></i>
+              <h3>No invoices yet</h3>
+              <p>Create your first invoice to get started</p>
+              <a href="{% url 'invoices:create' %}" class="btn btn-primary">Create Invoice</a>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── Top Clients ── #}
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-header-title">Top Clients</h2>
+        <a href="{% url 'clients:list' %}" class="btn btn-ghost btn-sm">All</a>
+      </div>
+      <div class="card-body" style="padding:0">
+        {% for client in top_clients %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border-subtle);">
+          <div style="display:flex;align-items:center;gap:11px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">{{ client.name|first|upper }}</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--text-primary);">{{ client.name|truncatechars:20 }}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">{{ client.email|truncatechars:22 }}</div>
+            </div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#10b981;">${{ client.total_invoiced|floatformat:0|default:"0" }}</div>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding:32px 20px;">
+          <i class="bi bi-people empty-state-icon"></i>
+          <p>No clients yet</p>
+          <a href="{% url 'clients:create' %}" class="btn btn-ghost btn-sm">Add Client</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
