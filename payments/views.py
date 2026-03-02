@@ -35,27 +35,27 @@ def record_payment(request, invoice_pk):
     return render(request, 'payments/form.html', {'form': form, 'invoice': invoice})
 
 
-@login_required
 def stripe_checkout(request, invoice_pk):
-    """Creates a Stripe Checkout session and redirects to Stripe."""
-    org = get_org(request)
-    invoice = get_object_or_404(Invoice, pk=invoice_pk, organization=org)
+    """Creates a Stripe Checkout session and redirects to Stripe.
+    No login required — clients access this from the public portal."""
+    invoice = get_object_or_404(Invoice, pk=invoice_pk)
+    org = invoice.organization
 
     if not settings.STRIPE_SECRET_KEY:
-        messages.warning(request, 'Stripe is not configured. Please add STRIPE_SECRET_KEY to your .env file.')
-        return redirect('invoices:detail', pk=invoice_pk)
+        return redirect('invoices:portal', pk=invoice_pk)
 
     import stripe
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    success_url = request.build_absolute_uri(f'/payments/invoice/{invoice_pk}/stripe/success/')
-    cancel_url = request.build_absolute_uri(f'/invoices/portal/{invoice_pk}/')
+    base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+    success_url = f'{base_url}/payments/invoice/{invoice_pk}/stripe/success/'
+    cancel_url = f'{base_url}/invoices/portal/{invoice_pk}/'
 
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
             'price_data': {
-                'currency': invoice.client.currency.lower(),
+                'currency': (invoice.client.currency or org.currency or 'usd').lower(),
                 'product_data': {'name': f'Invoice {invoice.invoice_number} — {org.name}'},
                 'unit_amount': int(invoice.balance_due * 100),
             },
@@ -71,9 +71,14 @@ def stripe_checkout(request, invoice_pk):
     return redirect(session.url, permanent=False)
 
 
-@login_required
 def stripe_success(request, invoice_pk):
-    return render(request, 'payments/stripe_success.html', {'invoice_pk': invoice_pk})
+    """Public success page after Stripe payment — no login required."""
+    invoice = get_object_or_404(Invoice, pk=invoice_pk)
+    return render(request, 'payments/stripe_success.html', {
+        'invoice_pk': invoice_pk,
+        'invoice': invoice,
+        'org': invoice.organization,
+    })
 
 
 @csrf_exempt
