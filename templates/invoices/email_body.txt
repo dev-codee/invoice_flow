@@ -2,7 +2,7 @@ Invoice {{ invoice.invoice_number }} from {{ org.name }}
 
 Dear {{ invoice.client.name }},
 
-Please find your invoice attached.
+Please find your invoice details below.
 
 Invoice Number: {{ invoice.invoice_number }}
 Issue Date: {{ invoice.issue_date }}
@@ -18,3 +18,7 @@ Thank you for your business!
 
 {{ org.name }}
 {% if org.phone %}{{ org.phone }}{% endif %}
+{% if org.address %}{{ org.address }}{% endif %}
+
+---
+You received this email because an invoice was issued to you by {{ org.name }}.

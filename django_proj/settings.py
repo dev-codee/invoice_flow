@@ -198,7 +198,10 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')          # Always "apikey" for SendGrid
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')        # Your SendGrid API key
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='InvoiceFlow <your-email@gmail.com>')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='InvoiceFlow <boxco044@gmail.com>')
+
+# ─── Site URL (used in emails so links point to production, not localhost) ─────
+SITE_URL = config('SITE_URL', default='https://invoice-flow-moqa.onrender.com')
 
 # ─── Stripe ────────────────────────────────────────────────────────────────────
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')

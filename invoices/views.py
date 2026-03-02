@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.db.models import Q
@@ -110,16 +110,34 @@ def invoice_delete(request, pk):
 def invoice_send(request, pk):
     org = get_org(request)
     invoice = get_object_or_404(Invoice, pk=pk, organization=org)
-    portal_url = request.build_absolute_uri(f'/invoices/portal/{invoice.pk}/')
+
+    # Always use the production URL for portal links (localhost triggers spam)
+    base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+    portal_url = f'{base_url}/invoices/portal/{invoice.pk}/'
+
     subject = f'Invoice {invoice.invoice_number} from {org.name}'
-    body = render_to_string('invoices/email_body.txt', {'invoice': invoice, 'org': org, 'portal_url': portal_url})
-    send_mail(
+    ctx = {'invoice': invoice, 'org': org, 'portal_url': portal_url}
+
+    # Plain-text fallback
+    text_body = render_to_string('invoices/email_body.txt', ctx)
+    # Rich HTML invoice
+    html_body = render_to_string('invoices/email_invoice.html', ctx)
+
+    email = EmailMultiAlternatives(
         subject=subject,
-        message=body,
+        body=text_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[invoice.client.email],
-        fail_silently=False,
+        to=[invoice.client.email],
+        reply_to=[settings.DEFAULT_FROM_EMAIL],
     )
+    email.attach_alternative(html_body, 'text/html')
+
+    # Anti-spam headers
+    email.extra_headers['X-Mailer'] = 'InvoiceFlow'
+    email.extra_headers['X-Entity-Ref-ID'] = str(invoice.pk)
+
+    email.send(fail_silently=False)
+
     invoice.status = Invoice.STATUS_SENT
     invoice.sent_at = timezone.now()
     invoice.save(update_fields=['status', 'sent_at'])

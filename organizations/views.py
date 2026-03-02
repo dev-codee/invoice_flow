@@ -93,7 +93,8 @@ def invite_member(request):
         invitation.organization = org
         invitation.invited_by = request.user
         invitation.save()
-        accept_url = request.build_absolute_uri(f'/organizations/invite/accept/{invitation.token}/')
+        base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        accept_url = f'{base_url}/organizations/invite/accept/{invitation.token}/'
         send_mail(
             subject=f'You\'re invited to join {org.name} on InvoiceFlow',
             message=f'Click here to accept: {accept_url}',

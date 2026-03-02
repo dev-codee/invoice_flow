@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Invoice {{ invoice.invoice_number }}</title>
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+  <style>
+    /* Reset */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; }
+    a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; padding: 0 10px !important; }
+      .invoice-table th, .invoice-table td { padding: 8px 10px !important; font-size: 13px !important; }
+      .header-section { padding: 24px 20px !important; }
+      .body-section { padding: 24px 20px !important; }
+      .footer-section { padding: 20px !important; }
+      .kpi-box { display: block !important; width: 100% !important; margin-bottom: 8px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f5f9;font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+  <!-- Preheader (hidden text for email preview) -->
+  <div style="display:none;font-size:1px;color:#f4f5f9;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    Invoice {{ invoice.invoice_number }} — ${{ invoice.total|floatformat:2 }} due {{ invoice.due_date|date:"M d, Y" }} from {{ org.name }}
+  </div>
+
+  <!-- Outer wrapper -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f9;">
+    <tr>
+      <td align="center" style="padding:24px 16px 40px;">
+
+        <!-- Main card -->
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+          <!-- Purple header -->
+          <tr>
+            <td class="header-section" style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);padding:32px 36px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="vertical-align:top;">
+                    <div style="font-family:'Segoe UI',Roboto,sans-serif;font-size:20px;font-weight:700;color:#ffffff;margin-bottom:4px;">{{ org.name }}</div>
+                    {% if org.address %}<div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.5;">{{ org.address|linebreaksbr }}</div>{% endif %}
+                    {% if org.phone %}<div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:2px;">{{ org.phone }}</div>{% endif %}
+                  </td>
+                  <td style="vertical-align:top;text-align:right;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.45);margin-bottom:4px;">Invoice</div>
+                    <div style="font-family:'Segoe UI',Roboto,sans-serif;font-size:24px;font-weight:700;color:#ffffff;">{{ invoice.invoice_number }}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="body-section" style="padding:32px 36px;">
+
+              <!-- Bill To + Dates -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="vertical-align:top;width:55%;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#9ca3af;margin-bottom:8px;">Bill To</div>
+                    <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:2px;">{{ invoice.client.name }}</div>
+                    <div style="font-size:13px;color:#6b7280;">{{ invoice.client.email }}</div>
+                    {% if invoice.client.billing_address %}<div style="font-size:12.5px;color:#6b7280;margin-top:4px;line-height:1.5;">{{ invoice.client.billing_address }}</div>{% endif %}
+                  </td>
+                  <td style="vertical-align:top;text-align:right;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-left:auto;">
+                      <tr>
+                        <td style="font-size:12.5px;color:#9ca3af;padding:3px 14px 3px 0;">Issue Date</td>
+                        <td style="font-size:13px;font-weight:600;color:#111827;padding:3px 0;">{{ invoice.issue_date|date:"M d, Y" }}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:12.5px;color:#9ca3af;padding:3px 14px 3px 0;">Due Date</td>
+                        <td style="font-size:13px;font-weight:700;color:{% if invoice.is_overdue %}#ef4444{% else %}#111827{% endif %};padding:3px 0;">{{ invoice.due_date|date:"M d, Y" }}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:12.5px;color:#9ca3af;padding:3px 14px 3px 0;">Status</td>
+                        <td style="padding:3px 0;">
+                          <span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;background-color:#eff6ff;color:#2563eb;">{{ invoice.get_status_display }}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Line Items Table -->
+              <table class="invoice-table" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:24px;">
+                <thead>
+                  <tr style="background-color:#f8f9fc;">
+                    <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;border-bottom:2px solid #e8e9f0;">Description</th>
+                    <th style="padding:10px 14px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;border-bottom:2px solid #e8e9f0;">Qty</th>
+                    <th style="padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;border-bottom:2px solid #e8e9f0;">Price</th>
+                    <th style="padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;border-bottom:2px solid #e8e9f0;">Tax</th>
+                    <th style="padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9ca3af;border-bottom:2px solid #e8e9f0;">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in invoice.line_items.all %}
+                  <tr>
+                    <td style="padding:12px 14px;font-size:13.5px;color:#111827;border-bottom:1px solid #f0f1f6;">{{ item.description }}</td>
+                    <td style="padding:12px 14px;text-align:center;font-size:13px;color:#6b7280;border-bottom:1px solid #f0f1f6;">{{ item.quantity|floatformat:0 }}</td>
+                    <td style="padding:12px 14px;text-align:right;font-size:13px;color:#6b7280;border-bottom:1px solid #f0f1f6;">${{ item.unit_price|floatformat:2 }}</td>
+                    <td style="padding:12px 14px;text-align:right;font-size:13px;color:#6b7280;border-bottom:1px solid #f0f1f6;">{{ item.tax_rate|floatformat:0 }}%</td>
+                    <td style="padding:12px 14px;text-align:right;font-size:14px;font-weight:700;color:#111827;border-bottom:1px solid #f0f1f6;">${{ item.amount|floatformat:2 }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+
+              <!-- Totals -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-left:auto;min-width:240px;">
+                <tr>
+                  <td style="padding:5px 20px 5px 0;font-size:13px;color:#9ca3af;">Subtotal</td>
+                  <td style="padding:5px 0;font-size:13.5px;color:#111827;text-align:right;">${{ invoice.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% if invoice.discount_amount %}
+                <tr>
+                  <td style="padding:5px 20px 5px 0;font-size:13px;color:#9ca3af;">Discount</td>
+                  <td style="padding:5px 0;font-size:13.5px;color:#ef4444;text-align:right;">−${{ invoice.discount_amount|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                  <td style="padding:5px 20px 5px 0;font-size:13px;color:#9ca3af;">Tax</td>
+                  <td style="padding:5px 0;font-size:13.5px;color:#111827;text-align:right;">${{ invoice.tax_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding:8px 0 0;"><div style="border-top:2px solid #e8e9f0;"></div></td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 20px 4px 0;font-size:16px;font-weight:700;color:#111827;">Total Due</td>
+                  <td style="padding:10px 0 4px;font-size:22px;font-weight:800;color:#4f46e5;text-align:right;">${{ invoice.total|floatformat:2 }}</td>
+                </tr>
+                {% if invoice.amount_paid %}
+                <tr>
+                  <td style="padding:4px 20px 4px 0;font-size:13px;font-weight:600;color:#10b981;">Paid</td>
+                  <td style="padding:4px 0;font-size:13.5px;font-weight:700;color:#10b981;text-align:right;">${{ invoice.amount_paid|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                  <td style="padding:4px 20px 4px 0;font-size:14px;font-weight:700;color:#ef4444;">Balance Due</td>
+                  <td style="padding:4px 0;font-size:16px;font-weight:800;color:#ef4444;text-align:right;">${{ invoice.balance_due|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+              </table>
+
+              <!-- Notes -->
+              {% if invoice.notes or invoice.terms %}
+              <div style="margin-top:24px;padding-top:20px;border-top:1px solid #f0f1f6;">
+                {% if invoice.notes %}
+                <div style="font-size:13px;color:#6b7280;margin-bottom:6px;"><strong style="color:#374151;">Notes:</strong> {{ invoice.notes }}</div>
+                {% endif %}
+                {% if invoice.terms %}
+                <div style="font-size:13px;color:#6b7280;"><strong style="color:#374151;">Terms:</strong> {{ invoice.terms }}</div>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <!-- CTA Button -->
+              <div style="text-align:center;margin-top:32px;">
+                <a href="{{ portal_url }}" target="_blank" style="display:inline-block;padding:14px 36px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;box-shadow:0 4px 14px rgba(79,70,229,0.35);">
+                  <!--[if mso]><i style="mso-font-width:350%;mso-text-raise:0" hidden>&emsp;</i><![endif]-->
+                  <span style="mso-text-raise:8pt;">View &amp; Pay Invoice Online →</span>
+                  <!--[if mso]><i style="mso-font-width:350%;" hidden>&emsp;&#8203;</i><![endif]-->
+                </a>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td class="footer-section" style="background-color:#f8f9fc;padding:24px 36px;border-top:1px solid #e8e9f0;text-align:center;">
+              <div style="font-size:12.5px;color:#6b7280;line-height:1.6;margin-bottom:6px;">
+                This invoice was sent by <strong style="color:#374151;">{{ org.name }}</strong>
+              </div>
+              {% if org.phone %}<div style="font-size:12px;color:#9ca3af;">{{ org.phone }}</div>{% endif %}
+              {% if org.address %}<div style="font-size:11.5px;color:#9ca3af;margin-top:4px;line-height:1.5;">{{ org.address }}</div>{% endif %}
+              <div style="font-size:11px;color:#d1d5db;margin-top:12px;">
+                Powered by <a href="https://invoice-flow-moqa.onrender.com" style="color:#6366f1;font-weight:600;text-decoration:none;">InvoiceFlow</a>
+              </div>
+              <div style="font-size:10.5px;color:#d1d5db;margin-top:6px;">
+                You received this email because an invoice was issued to you. This is not a marketing email.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+        <!-- /Main card -->
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
