@@ -29,3 +29,5 @@ whitenoise==6.11.0
 # Media & PDF
 Pillow==11.3.0
 reportlab==4.4.10
+
+cryptography>=41.0.0
