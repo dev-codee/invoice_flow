@@ -34,7 +34,7 @@
   </div>
 </div>
 
-<div style="display:grid;grid-template-columns:2fr 340px;gap:20px;align-items:start;">
+<div class="layout-detail">
   {# ── Invoice Paper ── #}
   <div class="invoice-paper">
     <div class="invoice-paper-header">
@@ -52,7 +52,7 @@
     </div>
 
     <div class="invoice-paper-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+      <div class="invoice-bill-grid">
         <div>
           <div style="font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Bill To</div>
           <div style="font-weight:700;font-size:15px;margin-bottom:2px;">{{ invoice.client.name }}</div>

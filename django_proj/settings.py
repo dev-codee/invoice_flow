@@ -191,14 +191,14 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 # In production (Render), tasks run via real workers — disable eager mode
 CELERY_TASK_ALWAYS_EAGER = config('CELERY_TASK_ALWAYS_EAGER', default=True, cast=bool)
 
-# ─── Email ─────────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+# ─── Email (SendGrid SMTP) ─────────────────────────────────────────────────────
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='InvoiceFlow <noreply@invoiceflow.app>')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')          # Always "apikey" for SendGrid
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')        # Your SendGrid API key
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='InvoiceFlow <your-email@gmail.com>')
 
 # ─── Stripe ────────────────────────────────────────────────────────────────────
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', default='')

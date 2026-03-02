@@ -207,12 +207,20 @@
     if (switcher && !switcher.contains(e.target)) {
       dropdown.classList.remove('show');
     }
+    // Close sidebar on overlay click (mobile)
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !e.target.closest('#sidebar-toggle')) {
+      sidebar.classList.remove('open');
+    }
   });
 
   // Mobile sidebar toggle visibility
-  if (window.innerWidth <= 1024) {
-    document.getElementById('sidebar-toggle').style.display = 'flex';
+  function updateSidebarToggle() {
+    var btn = document.getElementById('sidebar-toggle');
+    if (btn) btn.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
   }
+  updateSidebarToggle();
+  window.addEventListener('resize', updateSidebarToggle);
 </script>
 
 {% block extra_js %}{% endblock %}
