@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email — InvoiceFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/invoiceflow.css' %}">
+</head>
+<body class="auth-body">
+  <div class="auth-layout">
+
+    <div class="auth-panel-left">
+      <div class="auth-panel-inner">
+        <div class="auth-brand">
+          <div class="auth-brand-logo"><i class="bi bi-receipt-cutoff"></i></div>
+          <div class="auth-brand-name">Invoice<span>Flow</span></div>
+        </div>
+        <h1 class="auth-panel-headline">Invoicing made&nbsp;<em>effortless.</em></h1>
+        <p class="auth-panel-sub">One platform to create invoices, collect payments, and grow your business — all in one place.</p>
+        <div class="auth-features">
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div>
+              <div class="auth-feature-title">Instant Invoices</div>
+              <div class="auth-feature-desc">Create and send professional invoices in seconds.</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <div>
+              <div class="auth-feature-title">Real-time Analytics</div>
+              <div class="auth-feature-desc">Track revenue, overdue amounts, and cash flow.</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div>
+              <div class="auth-feature-title">Secure Payments</div>
+              <div class="auth-feature-desc">Stripe-powered, encrypted, and always reliable.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-panel-right">
+      <div class="auth-form-wrap" style="text-align:center;">
+        <div style="margin-bottom:24px;">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ede9fe,#c4b5fd);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <i class="bi bi-envelope-check" style="font-size:32px;color:#7c3aed;"></i>
+          </div>
+          <h2 class="auth-form-title">Check your email</h2>
+          <p class="auth-form-sub" style="max-width:360px;margin:8px auto 0;">We've sent a verification link to your email address. Click the link to activate your account.</p>
+        </div>
+
+        <div style="background:#f5f3ff;border-radius:12px;padding:20px;margin-bottom:24px;text-align:left;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <i class="bi bi-info-circle-fill" style="color:#7c3aed;font-size:18px;flex-shrink:0;margin-top:2px;"></i>
+            <div style="font-size:13px;color:#4c1d95;line-height:1.6;">
+              <strong>Didn't receive it?</strong><br>
+              Check your spam folder, or <a href="{% url 'account_login' %}" style="color:#7c3aed;font-weight:600;text-decoration:underline;">sign in</a> to resend the verification email.
+            </div>
+          </div>
+        </div>
+
+        <a href="{% url 'account_login' %}" class="auth-submit-btn" style="text-decoration:none;display:inline-flex;justify-content:center;">
+          <span>Back to Sign In</span>
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
