@@ -40,6 +40,9 @@
 <aside class="sidebar" id="sidebar">
   <!-- Brand -->
   <div class="sidebar-brand">
+    {% if org and org.logo %}
+    <img src="{{ org.logo.url }}" alt="{{ org.name }}" class="org-logo" style="margin-bottom:6px;">
+    {% endif %}
     <div class="brand-text">Invoice<span>Flow</span></div>
     <div class="brand-tag">Billing · Invoices · Payments</div>
   </div>
@@ -137,7 +140,11 @@
     </button>
     <div class="topbar-org-switcher">
       <button class="topbar-org-btn" onclick="document.getElementById('org-dropdown').classList.toggle('show')">
+        {% if org and org.logo %}
+        <img src="{{ org.logo.url }}" alt="" class="org-logo" style="width:28px;height:28px;border-radius:8px;">
+        {% else %}
         <div class="org-avatar">{% if org %}{{ org.name|first|upper }}{% else %}I{% endif %}</div>
+        {% endif %}
         <span class="org-name">{% if org %}{{ org.name }}{% else %}InvoiceFlow{% endif %}</span>
         <i class="bi bi-chevron-down"></i>
       </button>

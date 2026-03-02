@@ -39,10 +39,15 @@
   <div class="invoice-paper">
     <div class="invoice-paper-header">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div>
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;">{{ org.name }}</div>
-          {% if org.address %}<div style="font-size:13px;opacity:0.65;line-height:1.6;">{{ org.address|linebreaksbr }}</div>{% endif %}
-          {% if org.phone %}<div style="font-size:13px;opacity:0.65;">{{ org.phone }}</div>{% endif %}
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          {% if org.logo %}
+          <img src="{{ org.logo.url }}" alt="{{ org.name }}" class="org-logo-lg">
+          {% endif %}
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px;">{{ org.name }}</div>
+            {% if org.address %}<div style="font-size:13px;opacity:0.65;line-height:1.6;">{{ org.address|linebreaksbr }}</div>{% endif %}
+            {% if org.phone %}<div style="font-size:13px;opacity:0.65;">{{ org.phone }}</div>{% endif %}
+          </div>
         </div>
         <div style="text-align:right;">
           <div style="font-size:11px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;">Invoice</div>
