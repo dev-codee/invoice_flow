@@ -1,7 +1,2 @@
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
-
-
-@csrf_exempt
-def stripe_webhook(request):
-    return HttpResponse(status=200)
+# Re-export the real webhook handler so webhook_urls.py resolves correctly.
+from .views import stripe_webhook  # noqa: F401

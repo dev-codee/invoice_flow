@@ -29,4 +29,8 @@ urlpatterns = [
 
     # Stripe Webhook (outside /api/ to avoid auth)
     path('webhooks/stripe/', include('payments.webhook_urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Only serve media files in development — use S3/CDN in production
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

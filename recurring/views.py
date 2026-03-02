@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django import forms
 from organizations.models import Organization, OrganizationMembership
@@ -65,6 +66,7 @@ def recurring_create(request):
 
 
 @login_required
+@require_POST
 def recurring_toggle(request, pk):
     org = _get_org(request)
     schedule = get_object_or_404(RecurringInvoice, pk=pk, organization=org)

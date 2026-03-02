@@ -98,6 +98,9 @@ def invoice_update(request, pk):
 def invoice_delete(request, pk):
     org = get_org(request)
     invoice = get_object_or_404(Invoice, pk=pk, organization=org)
+    if invoice.status in (Invoice.STATUS_PAID, 'partially_paid'):
+        messages.error(request, 'Cannot cancel a paid invoice.')
+        return redirect('invoices:detail', pk=pk)
     if request.method == 'POST':
         invoice.status = Invoice.STATUS_CANCELLED
         invoice.save()
@@ -110,6 +113,11 @@ def invoice_delete(request, pk):
 def invoice_send(request, pk):
     org = get_org(request)
     invoice = get_object_or_404(Invoice, pk=pk, organization=org)
+
+    # Guard: don't send cancelled or fully paid invoices
+    if invoice.status in (Invoice.STATUS_CANCELLED, Invoice.STATUS_PAID):
+        messages.error(request, 'Cannot send a cancelled or paid invoice.')
+        return redirect('invoices:detail', pk=pk)
 
     # Always use the production URL for portal links (localhost triggers spam)
     base_url = getattr(settings, 'SITE_URL', '').rstrip('/')

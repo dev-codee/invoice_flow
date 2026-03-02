@@ -41,6 +41,10 @@ def stripe_checkout(request, invoice_pk):
     invoice = get_object_or_404(Invoice, pk=invoice_pk)
     org = invoice.organization
 
+    # Guard: only allow payment on unpaid, active invoices with a balance
+    if invoice.status in ('paid', 'cancelled') or invoice.balance_due <= 0:
+        return redirect('invoices:portal', pk=invoice_pk)
+
     if not settings.STRIPE_SECRET_KEY:
         return redirect('invoices:portal', pk=invoice_pk)
 

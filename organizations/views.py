@@ -87,11 +87,20 @@ def invite_member(request):
     org = get_org(request)
     if not org or request.method != 'POST':
         return redirect('organizations:settings')
+    # Only owner/admin can invite
+    requester = request.user.memberships.filter(organization=org).first()
+    if not requester or requester.role not in ('owner', 'admin'):
+        messages.error(request, 'You do not have permission to invite members.')
+        return redirect('organizations:settings')
     form = InviteForm(request.POST)
     if form.is_valid():
         invitation = form.save(commit=False)
         invitation.organization = org
         invitation.invited_by = request.user
+        # Expire in 7 days
+        from django.utils import timezone
+        from datetime import timedelta
+        invitation.expires_at = timezone.now() + timedelta(days=7)
         invitation.save()
         base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
         accept_url = f'{base_url}/organizations/invite/accept/{invitation.token}/'
@@ -108,8 +117,21 @@ def invite_member(request):
 
 def accept_invitation(request, token):
     invitation = get_object_or_404(Invitation, token=token, is_accepted=False)
+
+    # Check if invitation has expired
+    from django.utils import timezone
+    if invitation.expires_at and timezone.now() > invitation.expires_at:
+        messages.error(request, 'This invitation has expired.')
+        return redirect('dashboard:dashboard')
+
     if not request.user.is_authenticated:
         return redirect(f'/accounts/login/?next=/organizations/invite/accept/{token}/')
+
+    # Verify the invitation email matches the logged-in user
+    if invitation.email.lower() != request.user.email.lower():
+        messages.error(request, f'This invitation was sent to {invitation.email}. Please log in with that email.')
+        return redirect('dashboard:dashboard')
+
     if not OrganizationMembership.objects.filter(
         user=request.user, organization=invitation.organization
     ).exists():
@@ -127,9 +149,19 @@ def accept_invitation(request, token):
 @login_required
 def remove_member(request, pk):
     org = get_org(request)
+    requester = request.user.memberships.filter(organization=org).first()
     membership = get_object_or_404(OrganizationMembership, pk=pk, organization=org)
+
+    # Only owner/admin can remove members
+    if not requester or requester.role not in ('owner', 'admin'):
+        messages.error(request, 'You do not have permission to remove members.')
+        return redirect('organizations:settings')
+    # Cannot remove the owner
     if membership.role == 'owner':
         messages.error(request, 'Cannot remove the owner.')
+    # Admins cannot remove other admins
+    elif requester.role == 'admin' and membership.role == 'admin':
+        messages.error(request, 'Admins cannot remove other admins.')
     else:
         membership.delete()
         messages.success(request, 'Member removed.')
