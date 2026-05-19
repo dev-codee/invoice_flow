@@ -2,6 +2,7 @@
 Django settings for InvoiceFlow SaaS project.
 """
 
+import os
 from pathlib import Path
 from decouple import config
 import dj_database_url  # ← needed for Render PostgreSQL
@@ -11,7 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = config('SECRET_KEY')  # No default — app crashes if missing (prevents insecure prod deploy)
 DEBUG = config('DEBUG', default=False, cast=bool)  # Defaults to False for production safety
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost,.onrender.com').split(',')
+# Render sets this env var automatically — always allow the service's own hostname
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
